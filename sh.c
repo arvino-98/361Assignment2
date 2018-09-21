@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "sh.h"
+#define BUFFERSIZE 1024
 
 int sh( int argc, char **argv, char **envp )
 {
@@ -64,6 +65,9 @@ int sh( int argc, char **argv, char **envp )
 
 
     /* check for each built in command and implement */
+    if (which(command, pathlist) != NULL){
+      printf("%s found\n", command);
+    }
 
      /*  else  program to exec */
     {
@@ -73,7 +77,7 @@ int sh( int argc, char **argv, char **envp )
       }
 
       else {
-        fprintf(stderr, "%s: Command not found.\n", args[0]);
+        //fprintf(stderr, "%s: Command not found.\n", args[0]);
       }
     }
   }
@@ -84,7 +88,16 @@ char *which(char *command, struct pathelement *pathlist )
 {
    /* loop through pathlist until finding command and return it.  Return
    NULL when not found. */
-
+   char *buffer = malloc (BUFFERSIZE);
+   while (pathlist) {
+     sprintf(buffer,"%s/%s", pathlist->element, command);
+     if (access(buffer, F_OK) == 0){
+       printf("%s found in %s\n", command, buffer);
+       return buffer;
+     }
+     pathlist = pathlist->next;
+   }
+   return NULL;
 } /* which() */
 
 char *where(char *command, struct pathelement *pathlist )
