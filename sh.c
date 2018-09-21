@@ -65,19 +65,29 @@ int sh( int argc, char **argv, char **envp )
 
 
     /* check for each built in command and implement */
-    if (which(command, pathlist) != NULL){
-      printf("%s found\n", command);
-    }
 
      /*  else  program to exec */
     {
-      if (0) { // if command found
-        /* find it */
-        /* do fork(), execve() and waitpid() */
+      /* find it */
+      /* do fork(), execve() and waitpid() */
+      commandpath = which(command, pathlist);
+      if (commandpath != NULL){
+        //printf("%s found\n", command);
+        if ((pid = fork()) < 0) {
+          printf("fork error");
+		    }
+        else if (pid == 0) {		/* child */
+          execlp(commandpath, commandpath, args[1], args[2], (char *)0);
+          printf("couldnt execute: %s\n", commandpath);
+          exit(127);
+        }
+        /* parent */
+		    if ((pid = waitpid(pid, &status, 0)) < 0){
+          printf("waitpid error");
+        }
       }
-
       else {
-        //fprintf(stderr, "%s: Command not found.\n", args[0]);
+        fprintf(stderr, "%s: Command not found.\n", args[0]);
       }
     }
   }
