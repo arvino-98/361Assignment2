@@ -77,7 +77,7 @@ int sh( int argc, char **argv, char **envp )
           printf("fork error");
 		    }
         else if (pid == 0) {		/* child */
-          execlp(commandpath, commandpath, args[1], args[2], (char *)0);
+          execv(commandpath, args);
           printf("couldnt execute: %s\n", commandpath);
           exit(127);
         }
