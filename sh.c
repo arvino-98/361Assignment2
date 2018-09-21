@@ -65,6 +65,9 @@ int sh( int argc, char **argv, char **envp )
 
 
     /* check for each built in command and implement */
+    if (strcmp(command, "exit") == 0){
+      exit(3);
+    }
 
      /*  else  program to exec */
     {
