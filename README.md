@@ -1,2 +1,2 @@
 # CISC361Shell
-For Assignment2 in CISC361
+For CISC361 Assignment2
