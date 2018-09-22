@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "sh.h"
+#include "builtins.h"
 #define BUFFERSIZE 1024
 
 int sh( int argc, char **argv, char **envp )
@@ -59,15 +60,9 @@ int sh( int argc, char **argv, char **envp )
       args[i] = token;
       i++;
     }
-    printf("arg: %s\n", args[1]);
-    printf("arg: %s\n", args[2]);
-    printf("arg: %s\n", args[3]);
-
 
     /* check for each built in command and implement */
-    if (strcmp(command, "exit") == 0){
-      exit(3);
-    }
+    getBuiltInPtr(command);
 
      /*  else  program to exec */
     {

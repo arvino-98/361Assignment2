@@ -5,3 +5,6 @@
 
 int isBuiltIn(char *command);
 int builtInSize();
+void getBuiltInPtr(char *command);
+
+void bic_exit();
