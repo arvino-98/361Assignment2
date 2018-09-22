@@ -64,6 +64,8 @@ int sh( int argc, char **argv, char **envp )
     /* check for each built in command and implement */
     getBuiltInPtr(command);
 
+    where("which", pathlist);
+
      /*  else  program to exec */
     {
       /* find it */
@@ -111,6 +113,14 @@ char *which(char *command, struct pathelement *pathlist )
 char *where(char *command, struct pathelement *pathlist )
 {
   /* similarly loop through finding all locations of command */
+  char cmd[64];
+  while (pathlist) {
+    sprintf(cmd, "%s/%s", pathlist->element, command);
+    if (access(cmd, F_OK) == 0){
+      printf("%s/%s\n", pathlist->element, command);
+    }
+    pathlist = pathlist->next;
+  }
 } /* where() */
 
 void list ( char *dir )
