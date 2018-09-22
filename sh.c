@@ -64,13 +64,22 @@ int sh( int argc, char **argv, char **envp )
     /* check for each built in command and implement */
     getBuiltInPtr(command);
 
-    where("which", pathlist);
-
      /*  else  program to exec */
     {
       /* find it */
       /* do fork(), execve() and waitpid() */
-      commandpath = which(command, pathlist);
+      if (command[0] == '.' && command[1] == '/' || command[0] == '/')
+      {
+        if (access(command, F_OK) == 0)
+        {
+          commandpath = command;
+        }
+      }
+      if (command[0] != '.')
+      {
+        commandpath = which(command, pathlist);
+      }
+
       if (commandpath != NULL){
         //printf("%s found\n", command);
         if ((pid = fork()) < 0) {
