@@ -49,7 +49,6 @@ int sh( int argc, char **argv, char **envp )
     /* get command line and process */
     fgets(commandline, 1024, stdin);
     commandline[strlen(commandline) - 1] = '\0';
-
     char* token = strtok(commandline," ");
     args[0] = token;
     command = args[0];
@@ -67,21 +66,19 @@ int sh( int argc, char **argv, char **envp )
      /*  else  program to exec */
     {
       /* find it */
-      /* do fork(), execve() and waitpid() */
-      if (command[0] == '.' && command[1] == '/' || command[0] == '/')
+      if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
       {
         if (access(command, F_OK) == 0)
         {
           commandpath = command;
         }
-      }
-      if (command[0] != '.')
+      } else if (command[0] != '.' && command[0] != '/')
       {
         commandpath = which(command, pathlist);
       }
 
+      /* do fork(), execve() and waitpid() */
       if (commandpath != NULL){
-        //printf("%s found\n", command);
         if ((pid = fork()) < 0) {
           printf("fork error");
 		    }
@@ -97,8 +94,18 @@ int sh( int argc, char **argv, char **envp )
       }
       else {
         fprintf(stderr, "%s: Command not found.\n", args[0]);
+        go = 0;
       }
     }
+  }
+
+  struct pathelement *tmp = pathlist;
+  struct pathelement *prev = NULL;
+  while (tmp->next != NULL){
+    prev = tmp;
+    tmp = tmp->next;
+    free(prev->element);
+    free(prev);
   }
   return 0;
 } /* sh() */
