@@ -154,9 +154,3 @@ char *where(char *command, struct pathelement *pathlist )
     pathlist = pathlist->next;
   }
 } /* where() */
-
-void list ( char *dir )
-{
-  /* see man page for opendir() and readdir() and print out filenames for
-  the directory passed */
-} /* list() */

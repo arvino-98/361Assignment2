@@ -2,11 +2,13 @@
 
 const char* BUILT_IN_COMMANDS[] = {
   "pwd",
-  "cd"
+  "cd",
+  "list"
 };
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
-  bic_cd
+  bic_cd,
+  bic_list
 };
 
 int builtInSize(){
@@ -47,3 +49,34 @@ void bic_pwd(){
 void bic_cd(char **args){
   chdir(args[1]);
 }
+
+void bic_list (char **args)
+{
+  /* see man page for opendir() and readdir() and print out filenames for
+  the directory passed */
+  DIR *dir;
+  if (args[1] != NULL)
+  {
+    dir = opendir(args[1]);
+    if (dir)
+    {
+      struct dirent *dp;
+      while ((dp=readdir(dir)) != NULL)
+      {
+        printf("%s\n", dp->d_name);
+      }
+    }
+  }
+  else
+  {
+    char *cwd = getcwd(NULL, 0);
+    dir = opendir(cwd);
+    struct dirent *dp;
+    while ((dp=readdir(dir)) != NULL)
+    {
+      printf("%s\n", dp->d_name);
+    }
+    free(cwd);
+  }
+  free(dir);
+} /* list() */
