@@ -44,7 +44,9 @@ int sh( int argc, char **argv, char **envp )
   while ( go )
   {
     /* print your prompt */
-    printf("%s", prompt);
+    char *cwd = getcwd(NULL, 0);
+    printf("%s%s", cwd ,prompt);
+    free(cwd);
 
     /* get command line and process */
     fgets(commandline, 1024, stdin);
@@ -62,11 +64,27 @@ int sh( int argc, char **argv, char **envp )
 
     /* check for each built in command and implement */
     if (strcmp(command, "exit") == 0){
-      go = 0;
+      struct pathelement *tmp = pathlist;
+      struct pathelement *prev = NULL;
+      while (tmp != NULL){
+        prev = tmp;
+        tmp = tmp->next;
+        free(prev);
+      }
+      free(pwd);
+      free(commandline);
+      free(prompt);
+      free(args);
+      free(owd);
+      free(commandpath);
+      exit(0);
     }
-    //getBuiltInPtr(command);
+    if (isBuiltIn(command, args)){
+      getBuiltInPtr(command, args);
+    }
 
      /*  else  program to exec */
+    else
     {
       /* find it */
       if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
@@ -98,23 +116,11 @@ int sh( int argc, char **argv, char **envp )
       }
       else {
         fprintf(stderr, "%s: Command not found.\n", args[0]);
-        go = 0;
       }
     }
   }
 
-  struct pathelement *tmp = pathlist;
-  struct pathelement *prev = NULL;
-  while (tmp != NULL){
-    prev = tmp;
-    tmp = tmp->next;
-    free(prev);
-  }
-  free(pwd);
-  free(commandline);
-  free(prompt);
-  free(args);
-  free(owd);
+
   return 0;
 } /* sh() */
 

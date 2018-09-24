@@ -1,10 +1,12 @@
 #include "builtins.h"
 
 const char* BUILT_IN_COMMANDS[] = {
-  "exit"
+  "pwd",
+  "cd"
 };
-void (*BUILT_IN_COMMANDS_PTR[])() = {
-  bic_exit
+void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
+  bic_pwd,
+  bic_cd
 };
 
 int builtInSize(){
@@ -12,7 +14,7 @@ int builtInSize(){
 }
 
 // 1 true, else 0
-int isBuiltIn(char *command){
+int isBuiltIn(char *command, char **args){
   for (int i = 0; i < builtInSize(); i++){
     if (strcmp(command, BUILT_IN_COMMANDS[i]) == 0){
       return 1;
@@ -21,11 +23,11 @@ int isBuiltIn(char *command){
   return 0;
 }
 
-void getBuiltInPtr(char *command){
-  if (isBuiltIn(command) == 1){
+void getBuiltInPtr(char *command, char **args){
+  if (isBuiltIn(command, args) == 1){
     for (int i = 0; i < builtInSize(); i++){
       if (strcmp(command, BUILT_IN_COMMANDS[i]) == 0){
-        (*BUILT_IN_COMMANDS_PTR[i])();
+        (*BUILT_IN_COMMANDS_PTR[i])(args);
       }
     }
   }
@@ -33,4 +35,15 @@ void getBuiltInPtr(char *command){
 
 void bic_exit(){
   exit(3);
+}
+
+void bic_pwd(){
+  char *tmp;
+  tmp = getcwd(NULL, 0);
+  printf("%s\n", tmp);
+  free(tmp);
+}
+
+void bic_cd(char **args){
+  chdir(args[1]);
 }
