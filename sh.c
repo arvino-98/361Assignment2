@@ -61,7 +61,10 @@ int sh( int argc, char **argv, char **envp )
     }
 
     /* check for each built in command and implement */
-    getBuiltInPtr(command);
+    if (strcmp(command, "exit") == 0){
+      go = 0;
+    }
+    //getBuiltInPtr(command);
 
      /*  else  program to exec */
     {
@@ -91,6 +94,7 @@ int sh( int argc, char **argv, char **envp )
 		    if ((pid = waitpid(pid, &status, 0)) < 0){
           printf("waitpid error");
         }
+        free(commandpath);
       }
       else {
         fprintf(stderr, "%s: Command not found.\n", args[0]);
@@ -101,12 +105,16 @@ int sh( int argc, char **argv, char **envp )
 
   struct pathelement *tmp = pathlist;
   struct pathelement *prev = NULL;
-  while (tmp->next != NULL){
+  while (tmp != NULL){
     prev = tmp;
     tmp = tmp->next;
-    free(prev->element);
     free(prev);
   }
+  free(pwd);
+  free(commandline);
+  free(prompt);
+  free(args);
+  free(owd);
   return 0;
 } /* sh() */
 
@@ -114,7 +122,8 @@ char *which(char *command, struct pathelement *pathlist )
 {
    /* loop through pathlist until finding command and return it.  Return
    NULL when not found. */
-   char *buffer = malloc (BUFFERSIZE);
+   char *buffer = calloc(1, BUFFERSIZE);
+   buffer[BUFFERSIZE - 1] = 0;
    while (pathlist) {
      sprintf(buffer,"%s/%s", pathlist->element, command);
      if (access(buffer, F_OK) == 0){
@@ -123,6 +132,7 @@ char *which(char *command, struct pathelement *pathlist )
      }
      pathlist = pathlist->next;
    }
+   free(buffer);
    return NULL;
 } /* which() */
 
