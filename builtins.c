@@ -52,31 +52,28 @@ void bic_cd(char **args){
 
 void bic_list (char **args)
 {
-  /* see man page for opendir() and readdir() and print out filenames for
-  the directory passed */
   DIR *dir;
-  if (args[1] != NULL)
+  struct dirent *dp;
+  if (args[1] != NULL) // if called with argument
   {
-    dir = opendir(args[1]);
-    if (dir)
+    dir = opendir(args[1]); // open and set it as our dir
+    if (!dir) // only if argument is a valid directory
     {
-      struct dirent *dp;
-      while ((dp=readdir(dir)) != NULL)
-      {
-        printf("%s\n", dp->d_name);
-      }
+      printf("Invalid directory\n");
+      return;
     }
   }
-  else
+  else // else set dir to current working directory
   {
     char *cwd = getcwd(NULL, 0);
     dir = opendir(cwd);
-    struct dirent *dp;
-    while ((dp=readdir(dir)) != NULL)
-    {
-      printf("%s\n", dp->d_name);
-    }
     free(cwd);
+  }
+
+  // then print dir
+  while ((dp=readdir(dir)) != NULL)
+  {
+    printf("%s\n", dp->d_name);
   }
   free(dir);
 } /* list() */
