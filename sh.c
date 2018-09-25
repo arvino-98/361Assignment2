@@ -11,6 +11,7 @@
 #include <signal.h>
 #include "sh.h"
 #include "builtins.h"
+#include "history.h"
 #define BUFFERSIZE 1024
 
 int sh( int argc, char **argv, char **envp )
@@ -41,6 +42,8 @@ int sh( int argc, char **argv, char **envp )
   /* Put PATH into a linked list */
   pathlist = get_path();
 
+
+
   while ( go )
   {
     /* print your prompt */
@@ -62,61 +65,76 @@ int sh( int argc, char **argv, char **envp )
       i++;
     }
 
-    /* check for each built in command and implement */
-    if (strcmp(command, "exit") == 0){
-      struct pathelement *tmp = pathlist;
-      struct pathelement *prev = NULL;
-      while (tmp != NULL){
-        prev = tmp;
-        tmp = tmp->next;
-        free(prev);
-      }
-      free(pwd);
-      free(commandline);
-      free(prompt);
-      free(args);
-      free(owd);
-      free(commandpath);
-      exit(0);
-    }
-    if (isBuiltIn(command, args)){
-      getBuiltInPtr(command, args);
-    }
 
-     /*  else  program to exec */
+    if (command != NULL)
+    {
+
+      insert(command);
+      HistList *temp = head;
+      while (temp != NULL){
+        printf("%s\n", temp->data);
+        temp = temp->next;
+      }
+
+    /* check for each built in command and implement */
+      if (strcmp(command, "exit") == 0){
+        struct pathelement *tmp = pathlist;
+        struct pathelement *prev = NULL;
+        while (tmp != NULL){
+          prev = tmp;
+          tmp = tmp->next;
+          free(prev);
+        }
+        free(pwd);
+        free(commandline);
+        free(prompt);
+        free(args);
+        free(owd);
+        free(commandpath);
+        exit(0);
+      }
+      if (isBuiltIn(command, args)){
+        getBuiltInPtr(command, args);
+      }
+
+       /*  else  program to exec */
+      else
+      {
+        /* find it */
+        if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
+        {
+          if (access(command, F_OK) == 0)
+          {
+            commandpath = command;
+          }
+        } else if (command[0] != '.' && command[0] != '/')
+        {
+          commandpath = which(command, pathlist);
+        }
+        /* do fork(), execve() and waitpid() */
+        if (commandpath != NULL){
+          if ((pid = fork()) < 0) {
+            printf("fork error");
+  		    }
+          else if (pid == 0) {		/* child */
+            execv(commandpath, args);
+            printf("couldnt execute: %s\n", commandpath);
+            exit(127);
+          }
+          /* parent */
+  		    if ((pid = waitpid(pid, &status, 0)) < 0){
+            printf("waitpid error");
+          }
+          free(commandpath);
+        }
+        else {
+          fprintf(stderr, "%s: Command not found.\n", args[0]);
+        }
+      }
+    }
     else
     {
-      /* find it */
-      if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
-      {
-        if (access(command, F_OK) == 0)
-        {
-          commandpath = command;
-        }
-      } else if (command[0] != '.' && command[0] != '/')
-      {
-        commandpath = which(command, pathlist);
-      }
-
-      /* do fork(), execve() and waitpid() */
-      if (commandpath != NULL){
-        if ((pid = fork()) < 0) {
-          printf("fork error");
-		    }
-        else if (pid == 0) {		/* child */
-          execv(commandpath, args);
-          printf("couldnt execute: %s\n", commandpath);
-          exit(127);
-        }
-        /* parent */
-		    if ((pid = waitpid(pid, &status, 0)) < 0){
-          printf("waitpid error");
-        }
-        free(commandpath);
-      }
-      else {
-        fprintf(stderr, "%s: Command not found.\n", args[0]);
-      }
+      continue;
     }
   }
 
