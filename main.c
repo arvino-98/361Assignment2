@@ -3,14 +3,14 @@
 #include <signal.h>
 #include <stdio.h>
 
-void sig_handler(int signal);
+void sig_handler(int sig);
 
 int main( int argc, char **argv, char **envp )
 {
   /* put signal set up stuff here */
-  if (signal(SIGINT, SIG_IGN) != SIG_IGN){
-    signal(SIGINT, sig_handler);
-  }
+  signal(SIGINT, sig_handler);
+  signal(SIGTSTP, SIG_IGN);
+  signal(SIGTERM, SIG_IGN);
 
   return sh(argc, argv, envp);
 }
@@ -18,6 +18,7 @@ int main( int argc, char **argv, char **envp )
 void sig_handler(int sig)
 {
   /* define your signal handler */
-  signal(sig, SIG_IGN);
-  printf("\n Cannot be terminated with Ctrl+C \n");
+  if (sig == SIGINT){
+    signal(SIGINT, sig_handler);
+  }
 }

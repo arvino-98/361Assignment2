@@ -120,7 +120,6 @@ int sh( int argc, char **argv, char **envp )
   		    if ((pid = waitpid(pid, &status, 0)) < 0){
             printf("waitpid error");
           }
-          free(commandpath);
         }
         else {
           fprintf(stderr, "%s: Command not found.\n", args[0]);
