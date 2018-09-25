@@ -1,14 +1,20 @@
 #include "builtins.h"
+#include "history.h"
+int histToPrint = 10;
 
 const char* BUILT_IN_COMMANDS[] = {
   "pwd",
   "cd",
-  "list"
+  "list",
+  "history",
+  "pid"
 };
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
   bic_cd,
-  bic_list
+  bic_list,
+  bic_history,
+  bic_pid
 };
 
 int builtInSize(){
@@ -77,3 +83,32 @@ void bic_list (char **args)
   }
   free(dir);
 } /* list() */
+
+void bic_history(char **args){
+  if (args[1] != NULL)
+  {
+    int isDigit = 1;
+    for (int i = 0; i < strlen(args[1]); i++){
+      if (isdigit(args[1][i]) == 0){
+        isDigit = 0;
+      }
+    }
+    if (isDigit){
+      histToPrint = atoi(args[1]);
+    }
+  }
+  else if(args[1] == NULL)
+  {
+    int i = 0;
+    HistList *temp = head;
+    while (temp != NULL && i < histToPrint){
+      printf("%s\n", temp->data);
+      temp = temp->next;
+      i++;
+    }
+  }
+}
+
+void bic_pid(){
+  printf("PID: %d\n", getpid());
+}

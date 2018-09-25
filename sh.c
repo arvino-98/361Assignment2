@@ -70,11 +70,6 @@ int sh( int argc, char **argv, char **envp )
     {
 
       insert(command);
-      HistList *temp = head;
-      while (temp != NULL){
-        printf("%s\n", temp->data);
-        temp = temp->next;
-      }
 
     /* check for each built in command and implement */
       if (strcmp(command, "exit") == 0){
