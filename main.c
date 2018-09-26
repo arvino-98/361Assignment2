@@ -9,8 +9,8 @@ int main( int argc, char **argv, char **envp )
 {
   /* put signal set up stuff here */
   signal(SIGINT, sig_handler);
-  signal(SIGTSTP, SIG_IGN);
-  signal(SIGTERM, SIG_IGN);
+  signal(SIGTSTP, sig_handler);
+  signal(SIGTERM, sig_handler);
 
   return sh(argc, argv, envp);
 }
@@ -21,4 +21,12 @@ void sig_handler(int sig)
   if (sig == SIGINT){
     signal(SIGINT, sig_handler);
   }
+  if (sig == SIGTSTP || sig == SIGTERM){
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+  }
+  char *cwd = getcwd(NULL, 0);
+  printf("\n%s>", cwd);
+  fflush(stdout);
+  free(cwd);
 }

@@ -9,3 +9,4 @@ typedef struct HistList{
 HistList *head;
 
 void insert(char *cmd);
+void freeList(HistList *head);

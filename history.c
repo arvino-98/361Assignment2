@@ -19,3 +19,13 @@ void insert(char *cmd){
     temp->next = newHist;
   }
 }
+
+void freeList(HistList *head){
+  HistList *tmp;
+  while (head != NULL){
+    tmp = head;
+    head = head->next;
+    free(tmp->data);
+    free(tmp);
+  }
+}

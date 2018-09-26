@@ -86,6 +86,7 @@ int sh( int argc, char **argv, char **envp )
         free(args);
         free(owd);
         free(commandpath);
+        freeList(head);
         exit(0);
       }
       if (isBuiltIn(command, args)){
@@ -98,7 +99,7 @@ int sh( int argc, char **argv, char **envp )
         /* find it */
         if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
         {
-          if (access(command, F_OK) == 0)
+          if (access(command, X_OK) == 0)
           {
             commandpath = command;
           }
