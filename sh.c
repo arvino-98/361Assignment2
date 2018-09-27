@@ -41,7 +41,7 @@ int sh( int argc, char **argv, char **envp )
   /* Put PATH into a linked list */
   pathlist = get_path();
 
-
+  initPrevDirectory();
 
   while ( go )
   {
@@ -80,7 +80,6 @@ int sh( int argc, char **argv, char **envp )
         free(prompt);
         free(args);
         free(owd);
-        free(commandpath);
         freeList(head);
         exit(0);
       }

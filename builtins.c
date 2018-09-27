@@ -1,27 +1,36 @@
 #include "builtins.h"
 #include "history.h"
+#include <signal.h>
 int histToPrint = 10;
+char* prevDirectory;
 
 const char* BUILT_IN_COMMANDS[] = {
   "pwd",
   "cd",
   "list",
   "history",
-  "pid"
+  "pid",
+  "kill"
 };
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
   bic_cd,
   bic_list,
   bic_history,
-  bic_pid
+  bic_pid,
+  bic_kill
 };
 
+void initPrevDirectory(){
+  prevDirectory = getcwd(NULL, 0);
+}
+
+// returns the size of our BUILT_IN_COMMANDS array
 int builtInSize(){
   return sizeof(BUILT_IN_COMMANDS) / sizeof(char *);
 }
 
-// 1 true, else 0
+// returns 1 if command is a built-in, else 0
 int isBuiltIn(char *command, char **args){
   for (int i = 0; i < builtInSize(); i++){
     if (strcmp(command, BUILT_IN_COMMANDS[i]) == 0){
@@ -31,20 +40,17 @@ int isBuiltIn(char *command, char **args){
   return 0;
 }
 
+// iterates through the BUILT_IN_COMMANDS_PTR array a returns the proper function
+// according to the given command
 void getBuiltInPtr(char *command, char **args){
-  if (isBuiltIn(command, args) == 1){
-    for (int i = 0; i < builtInSize(); i++){
-      if (strcmp(command, BUILT_IN_COMMANDS[i]) == 0){
-        (*BUILT_IN_COMMANDS_PTR[i])(args);
-      }
+  for (int i = 0; i < builtInSize(); i++){
+    if (strcmp(command, BUILT_IN_COMMANDS[i]) == 0){
+      (*BUILT_IN_COMMANDS_PTR[i])(args);
     }
   }
 }
 
-void bic_exit(){
-  exit(3);
-}
-
+// prints the current working directory
 void bic_pwd(){
   char *tmp;
   tmp = getcwd(NULL, 0);
@@ -52,41 +58,49 @@ void bic_pwd(){
   free(tmp);
 }
 
+// changes directory according to given argument
 void bic_cd(char **args){
-  chdir(args[1]);
+  char *prevDirectoryLoc = prevDirectory;
+  prevDirectory = getcwd(NULL, 0);
+  if (strcmp(args[1], "-") == 0){
+    if (chdir(prevDirectoryLoc) == 0){
+      perror("not a valid directory");
+    }
+  }
+  else if (args[1] != NULL){
+    if (chdir(args[1]) != 0){
+      perror("not a valid directory");
+    }
+  }
 }
 
+// lists all files in current directory
 void bic_list (char **args)
 {
   DIR *dir;
   struct dirent *dp;
-  if (args[1] != NULL) // if called with argument
-  {
+  if (args[1] != NULL){ // if called with argument
     dir = opendir(args[1]); // open and set it as our dir
-    if (!dir) // only if argument is a valid directory
-    {
+    if (!dir){ // only if argument is a valid directory
       printf("Invalid directory\n");
       return;
     }
   }
-  else // else set dir to current working directory
-  {
+  else{// else set dir to current working directory
     char *cwd = getcwd(NULL, 0);
     dir = opendir(cwd);
     free(cwd);
   }
 
   // then print dir
-  while ((dp=readdir(dir)) != NULL)
-  {
+  while ((dp=readdir(dir)) != NULL){
     printf("%s\n", dp->d_name);
   }
   free(dir);
 } /* list() */
 
 void bic_history(char **args){
-  if (args[1] != NULL)
-  {
+  if (args[1] != NULL){
     int isDigit = 1;
     for (int i = 0; i < strlen(args[1]); i++){
       if (isdigit(args[1][i]) == 0){
@@ -97,8 +111,7 @@ void bic_history(char **args){
       histToPrint = atoi(args[1]);
     }
   }
-  else if(args[1] == NULL)
-  {
+  else if(args[1] == NULL){
     int i = 0;
     HistList *temp = head;
     while (temp != NULL && i < histToPrint){
@@ -111,4 +124,12 @@ void bic_history(char **args){
 
 void bic_pid(){
   printf("PID: %d\n", getpid());
+}
+
+void bic_kill(char **args){
+  if (args[1] != NULL) {
+    if (kill(atoi(args[1]), SIGTERM) == -1){
+      perror("not a valid signal");
+    }
+  }
 }
