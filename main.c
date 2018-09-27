@@ -22,8 +22,8 @@ void sig_handler(int sig)
     signal(SIGINT, sig_handler);
   }
   if (sig == SIGTSTP || sig == SIGTERM){
-    signal(SIGTSTP, SIG_IGN);
-    signal(SIGTERM, SIG_IGN);
+    signal(SIGTSTP, sig_handler);
+    signal(SIGTERM, sig_handler);
   }
   char *cwd = getcwd(NULL, 0);
   printf("\n%s>", cwd);

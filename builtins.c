@@ -3,6 +3,7 @@
 #include <signal.h>
 int histToPrint = 10;
 char* prevDirectory;
+char **bic_envp;
 
 const char* BUILT_IN_COMMANDS[] = {
   "pwd",
@@ -10,7 +11,8 @@ const char* BUILT_IN_COMMANDS[] = {
   "list",
   "history",
   "pid",
-  "kill"
+  "kill",
+  "printenv"
 };
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
@@ -18,11 +20,18 @@ void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_list,
   bic_history,
   bic_pid,
-  bic_kill
+  bic_kill,
+  bic_printenv
 };
 
 void initPrevDirectory(){
   prevDirectory = getcwd(NULL, 0);
+}
+void freePrevDirectory(){
+  free(prevDirectory);
+}
+void initEnvp(char **envp){
+  bic_envp = envp;
 }
 
 // returns the size of our BUILT_IN_COMMANDS array
@@ -63,15 +72,16 @@ void bic_cd(char **args){
   char *prevDirectoryLoc = prevDirectory;
   prevDirectory = getcwd(NULL, 0);
   if (strcmp(args[1], "-") == 0){
-    if (chdir(prevDirectoryLoc) == 0){
-      perror("not a valid directory");
+    if (chdir(prevDirectoryLoc) != 0){
+      perror("Not a valid directory");
     }
   }
   else if (args[1] != NULL){
     if (chdir(args[1]) != 0){
-      perror("not a valid directory");
+      perror("Not a valid directory");
     }
   }
+  free(prevDirectoryLoc);
 }
 
 // lists all files in current directory
@@ -129,7 +139,27 @@ void bic_pid(){
 void bic_kill(char **args){
   if (args[1] != NULL) {
     if (kill(atoi(args[1]), SIGTERM) == -1){
-      perror("not a valid signal");
+      perror("Not a valid signal");
+    }
+  }
+}
+
+void bic_printenv(char **args){
+  if(args[1] == NULL){
+    char **envpLoc = bic_envp;
+    while(*envpLoc){
+      char *thisEnv = *envpLoc;
+      printf("%s\n", thisEnv);
+      envpLoc++;
+    }
+  }
+  else if (args[2] != NULL){
+    printf("Too many arguments\n");
+  }
+  else if(args[1] != NULL){
+    char *tmp;
+    if ((tmp=getenv(args[1])) != NULL){
+      printf("%s\n", tmp);
     }
   }
 }

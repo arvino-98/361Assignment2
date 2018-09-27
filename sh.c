@@ -42,6 +42,7 @@ int sh( int argc, char **argv, char **envp )
   pathlist = get_path();
 
   initPrevDirectory();
+  initEnvp(envp);
 
   while ( go )
   {
@@ -80,6 +81,7 @@ int sh( int argc, char **argv, char **envp )
         free(prompt);
         free(args);
         free(owd);
+        freePrevDirectory();
         freeList(head);
         exit(0);
       }

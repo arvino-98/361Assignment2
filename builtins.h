@@ -7,6 +7,8 @@
 #include <ctype.h>
 
 void initPrevDirectory();
+void freePrevDirectory();
+void initEnvp(char **envp);
 int isBuiltIn(char *command, char **args);
 int builtInSize();
 void getBuiltInPtr(char *command,char **args);
@@ -17,3 +19,4 @@ void bic_list(char **args);
 void bic_history(char **args);
 void bic_pid();
 void bic_kill(char **args);
+void bic_printenv(char **args);
