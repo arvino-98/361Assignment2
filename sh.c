@@ -36,7 +36,7 @@ int sh( int argc, char **argv, char **envp )
   }
   owd = calloc(strlen(pwd) + 1, sizeof(char));
   memcpy(owd, pwd, strlen(pwd));
-  prompt[0] = '>'; prompt[1] = '\0';
+  prompt[0] = ' '; prompt[1] = '\0';
 
   /* Put PATH into a linked list */
   pathlist = get_path();
@@ -48,7 +48,7 @@ int sh( int argc, char **argv, char **envp )
   {
     /* print your prompt */
     char *cwd = getcwd(NULL, 0);
-    printf("%s%s", cwd ,prompt);
+    printf("%s[%s]%s",prompt,cwd,">");
     free(cwd);
     /* get command line and process */
     fgets(commandline, BUFFERSIZE, stdin);
@@ -83,8 +83,21 @@ int sh( int argc, char **argv, char **envp )
         freeList(head);
         exit(0);
       }
-      else if (strcmp(command, "where") == 0){ // if where, call with argument
+      else if (strcmp(command, "where") == 0){ // where called seperately because it was defined in sh.c
         where(args[1], pathlist);
+      }
+      else if (strcmp(command, "prompt") == 0){ // prompt called seperately because it must modify the prompt variable
+        if (args[1] == NULL){
+          char newPrompt[32];
+          printf("Enter new prompt prefix: ");
+          fgets(newPrompt, BUFFERSIZE, stdin);
+          newPrompt[strlen(newPrompt) - 1] = '\0';
+          strcpy(prompt, newPrompt);
+        }
+        else {
+          char *newPrompt = args[1];
+          strcpy(prompt, newPrompt);
+        }
       }
       else if (isBuiltIn(command, args)){ // check if one of the other built-ins
         printf("Executing built-in: %s\n", command);
