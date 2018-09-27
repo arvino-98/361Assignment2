@@ -27,8 +27,7 @@ int sh( int argc, char **argv, char **envp )
 
   uid = getuid();
   password_entry = getpwuid(uid);               /* get passwd info */
-  homedir = password_entry->pw_dir;		/* Home directory to start
-						  out with*/
+  homedir = password_entry->pw_dir;		/* Home directory to start out with*/
 
   if ( (pwd = getcwd(NULL, PATH_MAX+1)) == NULL )
   {
@@ -57,7 +56,6 @@ int sh( int argc, char **argv, char **envp )
     char* token = strtok(commandline," ");
     args[0] = token;
     command = args[0];
-    printf("command: %s\n", command);
     int i = 1;
     while (token != NULL){
       token = strtok(NULL," ");
@@ -65,14 +63,11 @@ int sh( int argc, char **argv, char **envp )
       i++;
     }
 
-
     if (command != NULL)
     {
-
       insert(command);
-
     /* check for each built in command and implement */
-      if (strcmp(command, "exit") == 0){
+      if (strcmp(command, "exit") == 0){ // if exit, free all allocated space
         struct pathelement *tmp = pathlist;
         struct pathelement *prev = NULL;
         while (tmp != NULL){
@@ -89,7 +84,11 @@ int sh( int argc, char **argv, char **envp )
         freeList(head);
         exit(0);
       }
-      if (isBuiltIn(command, args)){
+      else if (strcmp(command, "where") == 0){ // if where, call with argument
+        where(args[1], pathlist);
+      }
+      else if (isBuiltIn(command, args)) // check if one of the other built-ins
+      {
         getBuiltInPtr(command, args);
       }
 
@@ -97,29 +96,35 @@ int sh( int argc, char **argv, char **envp )
       else
       {
         /* find it */
+        // if a command starts with ./ or / check if its an absolute pathlist
+        // that is executable
         if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
         {
           if (access(command, X_OK) == 0)
           {
             commandpath = command;
           }
-        } else if (command[0] != '.' && command[0] != '/')
+        }
+        // else if it is not, we check if it is a command somewhere that we find
+        // with which()
+        else if (command[0] != '.' && command[0] != '/')
         {
           commandpath = which(command, pathlist);
         }
         /* do fork(), execve() and waitpid() */
         if (commandpath != NULL){
+          printf("Executing %s\n", command);
           if ((pid = fork()) < 0) {
-            printf("fork error");
+            perror("Fork error");
   		    }
-          else if (pid == 0) {		/* child */
+          else if (pid == 0) {/* child */
             execv(commandpath, args);
-            printf("couldnt execute: %s\n", commandpath);
+            perror("Couldn't execute");
             exit(127);
           }
           /* parent */
   		    if ((pid = waitpid(pid, &status, 0)) < 0){
-            printf("waitpid error");
+            perror("Wait error");
           }
         }
         else {
@@ -146,7 +151,6 @@ char *which(char *command, struct pathelement *pathlist )
    while (pathlist) {
      sprintf(buffer,"%s/%s", pathlist->element, command);
      if (access(buffer, F_OK) == 0){
-       printf("%s found in %s\n", command, buffer);
        return buffer;
      }
      pathlist = pathlist->next;
@@ -155,7 +159,7 @@ char *which(char *command, struct pathelement *pathlist )
    return NULL;
 } /* which() */
 
-char *where(char *command, struct pathelement *pathlist )
+void where(char *command, struct pathelement *pathlist)
 {
   /* similarly loop through finding all locations of command */
   char cmd[64];
@@ -166,4 +170,5 @@ char *where(char *command, struct pathelement *pathlist )
     }
     pathlist = pathlist->next;
   }
+  return;
 } /* where() */
