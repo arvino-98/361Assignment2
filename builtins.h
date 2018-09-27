@@ -20,3 +20,4 @@ void bic_history(char **args);
 void bic_pid();
 void bic_kill(char **args);
 void bic_printenv(char **args);
+void bic_setenv(char **args);

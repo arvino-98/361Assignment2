@@ -12,7 +12,8 @@ const char* BUILT_IN_COMMANDS[] = {
   "history",
   "pid",
   "kill",
-  "printenv"
+  "printenv",
+  "setenv"
 };
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
@@ -21,7 +22,8 @@ void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_history,
   bic_pid,
   bic_kill,
-  bic_printenv
+  bic_printenv,
+  bic_setenv
 };
 
 void initPrevDirectory(){
@@ -49,7 +51,7 @@ int isBuiltIn(char *command, char **args){
   return 0;
 }
 
-// iterates through the BUILT_IN_COMMANDS_PTR array a returns the proper function
+// iterates through the BUILT_IN_COMMANDS_PTR array a returns the proper function pointer
 // according to the given command
 void getBuiltInPtr(char *command, char **args){
   for (int i = 0; i < builtInSize(); i++){
@@ -69,14 +71,20 @@ void bic_pwd(){
 
 // changes directory according to given argument
 void bic_cd(char **args){
-  char *prevDirectoryLoc = prevDirectory;
-  prevDirectory = getcwd(NULL, 0);
-  if (strcmp(args[1], "-") == 0){
+  char *prevDirectoryLoc = prevDirectory; // local copy of prevDirectory
+  prevDirectory = getcwd(NULL, 0); // change global prevDirectory
+  if (args[1] == NULL){ // if called with no arguments
+    char *home = getenv("HOME");
+    if (chdir(home) != 0){
+      perror("Error moving to home directory");
+    }
+  }
+  else if (args[1] != NULL && strcmp(args[1], "-") == 0){ // if called with 1 argument: "-"
     if (chdir(prevDirectoryLoc) != 0){
       perror("Not a valid directory");
     }
   }
-  else if (args[1] != NULL){
+  else if (args[1] != NULL){ // for any other argument given
     if (chdir(args[1]) != 0){
       perror("Not a valid directory");
     }
@@ -109,9 +117,20 @@ void bic_list (char **args)
   free(dir);
 } /* list() */
 
+// prints history or changes amount to print based on given argument
 void bic_history(char **args){
-  if (args[1] != NULL){
+  if(args[1] == NULL){ // if called with no arguments
+    int i = 0;
+    HistList *temp = head;
+    while (temp != NULL && i < histToPrint){
+      printf("%s\n", temp->data);
+      temp = temp->next;
+      i++;
+    }
+  }
+  else if (args[1] != NULL){ // if called with 1 argument
     int isDigit = 1;
+    // if any character in given string is a digit set isDigit to false
     for (int i = 0; i < strlen(args[1]); i++){
       if (isdigit(args[1][i]) == 0){
         isDigit = 0;
@@ -121,45 +140,59 @@ void bic_history(char **args){
       histToPrint = atoi(args[1]);
     }
   }
-  else if(args[1] == NULL){
-    int i = 0;
-    HistList *temp = head;
-    while (temp != NULL && i < histToPrint){
-      printf("%s\n", temp->data);
-      temp = temp->next;
-      i++;
-    }
-  }
 }
 
 void bic_pid(){
   printf("PID: %d\n", getpid());
 }
 
+// kills the procss of a give pid
 void bic_kill(char **args){
   if (args[1] != NULL) {
-    if (kill(atoi(args[1]), SIGTERM) == -1){
+    if (kill(atoi(args[1]), SIGTERM) != 0){
       perror("Not a valid signal");
     }
   }
 }
 
+// prints enviroment or single variable depending on argument
 void bic_printenv(char **args){
-  if(args[1] == NULL){
-    char **envpLoc = bic_envp;
-    while(*envpLoc){
+  if(args[1] == NULL){ // if called with no arguments
+    char **envpLoc = bic_envp; // local variable to hold environment list
+    while(*envpLoc){ // move thru environment list and print each variable
       char *thisEnv = *envpLoc;
       printf("%s\n", thisEnv);
       envpLoc++;
     }
   }
-  else if (args[2] != NULL){
+  else if(args[1] != NULL){ //if called with 1 argument
+    char *tmp;
+    if ((tmp=getenv(args[1])) != NULL){ // set temp to the variable we want and print
+      printf("%s\n", tmp);
+    }
+  }
+  else if (args[2] != NULL){ // if called with >1 arguments
     printf("Too many arguments\n");
+    return;
+  }
+}
+
+void bic_setenv(char **args){
+  if (args[1] == NULL){
+    bic_printenv(args);
+  }
+  else if(args[3] != NULL){
+    printf("Too many arguments\n");
+    return;
+  }
+  else if(args[2] != NULL){
+    if (setenv(args[1], args[2], 1) != 0){
+      perror("Error setting variable and value");
+    }
   }
   else if(args[1] != NULL){
-    char *tmp;
-    if ((tmp=getenv(args[1])) != NULL){
-      printf("%s\n", tmp);
+    if (setenv(args[1], "", 0) != 0){
+      perror("Error setting variable");
     }
   }
 }
