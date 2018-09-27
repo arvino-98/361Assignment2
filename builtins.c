@@ -1,5 +1,6 @@
 #include "builtins.h"
 #include "history.h"
+#include "sh.h"
 #include <signal.h>
 int histToPrint = 10;
 char* prevDirectory;
@@ -177,20 +178,22 @@ void bic_printenv(char **args){
   }
 }
 
+// sets environment variables according to arguments
+// if no argument given, prints entire environment
 void bic_setenv(char **args){
-  if (args[1] == NULL){
+  if (args[1] == NULL){ // if called with no arguments
     bic_printenv(args);
   }
-  else if(args[3] != NULL){
+  else if(args[3] != NULL){ // if called with >3 arguments
     printf("Too many arguments\n");
     return;
   }
-  else if(args[2] != NULL){
+  else if(args[2] != NULL){ // if called with 2 arguments
     if (setenv(args[1], args[2], 1) != 0){
       perror("Error setting variable and value");
     }
   }
-  else if(args[1] != NULL){
+  else if(args[1] != NULL){ // if called with 1 argument
     if (setenv(args[1], "", 0) != 0){
       perror("Error setting variable");
     }

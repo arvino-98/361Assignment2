@@ -12,7 +12,7 @@
 #include "sh.h"
 #include "builtins.h"
 #include "history.h"
-#define BUFFERSIZE 1024
+#define BUFFERSIZE 128
 
 int sh( int argc, char **argv, char **envp )
 {
@@ -50,9 +50,8 @@ int sh( int argc, char **argv, char **envp )
     char *cwd = getcwd(NULL, 0);
     printf("%s%s", cwd ,prompt);
     free(cwd);
-
     /* get command line and process */
-    fgets(commandline, 1024, stdin);
+    fgets(commandline, BUFFERSIZE, stdin);
     commandline[strlen(commandline) - 1] = '\0';
     char* token = strtok(commandline," ");
     args[0] = token;
@@ -63,9 +62,8 @@ int sh( int argc, char **argv, char **envp )
       args[i] = token;
       i++;
     }
-
-    if (command != NULL)
-    {
+    // if command not null figure out what to do with it
+    if (command != NULL){
       insert(command);
     /* check for each built in command and implement */
       if (strcmp(command, "exit") == 0){ // if exit, free all allocated space
@@ -88,28 +86,23 @@ int sh( int argc, char **argv, char **envp )
       else if (strcmp(command, "where") == 0){ // if where, call with argument
         where(args[1], pathlist);
       }
-      else if (isBuiltIn(command, args)) // check if one of the other built-ins
-      {
+      else if (isBuiltIn(command, args)){ // check if one of the other built-ins
+        printf("Executing built-in: %s\n", command);
         getBuiltInPtr(command, args);
       }
-
        /*  else  program to exec */
-      else
-      {
+      else{
         /* find it */
         // if a command starts with ./ or / check if its an absolute pathlist
         // that is executable
-        if ((command[0] == '.' && command[1] == '/') || (command[0] == '/'))
-        {
-          if (access(command, X_OK) == 0)
-          {
+        if ((command[0] == '.' && command[1] == '/') || (command[0] == '/')){
+          if (access(command, X_OK) == 0){
             commandpath = command;
           }
         }
         // else if it is not, we check if it is a command somewhere that we find
         // with which()
-        else if (command[0] != '.' && command[0] != '/')
-        {
+        else if (command[0] != '.' && command[0] != '/'){
           commandpath = which(command, pathlist);
         }
         /* do fork(), execve() and waitpid() */
@@ -133,13 +126,10 @@ int sh( int argc, char **argv, char **envp )
         }
       }
     }
-    else
-    {
+    else {
       continue;
     }
   }
-
-
   return 0;
 } /* sh() */
 
