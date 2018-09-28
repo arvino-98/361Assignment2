@@ -12,6 +12,7 @@
 #include "sh.h"
 #include "builtins.h"
 #include "history.h"
+#include "alias.h"
 #define BUFFERSIZE 128
 
 int sh( int argc, char **argv, char **envp )
@@ -55,16 +56,21 @@ int sh( int argc, char **argv, char **envp )
     // end printing prompt
 
     /* get command line and process */
-    fgets(commandline, BUFFERSIZE, stdin);
-    commandline[strlen(commandline) - 1] = '\0';
-    char* token = strtok(commandline," ");
-    args[0] = token;
-    command = args[0];
-    int i = 1;
-    while (token != NULL){
-      token = strtok(NULL," ");
-      args[i] = token;
-      i++;
+    if (fgets(commandline, BUFFERSIZE, stdin) != NULL){
+      commandline[strlen(commandline) - 1] = '\0';
+      char* token = strtok(commandline," ");
+      args[0] = token;
+      command = args[0];
+      int i = 1;
+      while (token != NULL){
+        token = strtok(NULL," ");
+        args[i] = token;
+        i++;
+      }
+    }
+    else{
+      printf("\n");
+      command = NULL;
     }
     // end command line processing
 
@@ -72,7 +78,27 @@ int sh( int argc, char **argv, char **envp )
     if (command != NULL){
       // insert command into history list
       insert(command);
-      /* first check for each built in command and implement */
+
+      // check if command is an alias
+      if (aliasHead != NULL){
+        printf("looking for alias\n");
+        AliasList *temp = aliasHead;
+        while (temp != NULL){
+          if (strcmp(temp->alias, args[0]) == 0){
+            printf("found alias\n");
+            command = temp->aliasArgs[0];
+            int i = 0;
+            while (temp->aliasArgs[i + 2] != NULL){
+              strcpy(args[i], temp->aliasArgs[i]);
+              i++;
+            }
+          }
+          temp = temp->next;
+        }
+      }
+      // end checking alias
+
+      /* check for each built in command and implement */
       // if exit, free all allocated space
       if (strcmp(command, "exit") == 0){
         struct pathelement *tmp = pathlist;

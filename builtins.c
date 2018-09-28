@@ -1,5 +1,6 @@
 #include "builtins.h"
 #include "history.h"
+#include "alias.h"
 #include "sh.h"
 #include <signal.h>
 int histToPrint = 10;
@@ -15,7 +16,8 @@ const char* BUILT_IN_COMMANDS[] = {
   "pid",
   "kill",
   "printenv",
-  "setenv"
+  "setenv",
+  "alias"
 };
 // array of char* that keep track of function pointers of our buil-in commands
 // mapped 1 to 1 to function pointers in above array BUILT_IN_COMMANDS
@@ -26,7 +28,8 @@ void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pid,
   bic_kill,
   bic_printenv,
-  bic_setenv
+  bic_setenv,
+  bic_alias
 };
 
 void initPrevDirectory(){
@@ -97,7 +100,7 @@ void bic_cd(char **args){
 
 // prints history or changes amount to print based on given argument
 void bic_history(char **args){
-  if(args[1] == NULL){ // if called with no arguments
+  if(args[1] == NULL){ // if called with no arguments, print history
     int i = 0;
     HistList *temp = head;
     while (temp != NULL && i < histToPrint){
@@ -106,7 +109,7 @@ void bic_history(char **args){
       i++;
     }
   }
-  else if (args[1] != NULL){ // if called with 1 argument
+  else if (args[1] != NULL){ // if called with 1 argument, change number to print
     int isDigit = 1;
     // if any character in given string is a digit set isDigit to false
     for (int i = 0; i < strlen(args[1]); i++){
@@ -174,5 +177,24 @@ void bic_setenv(char **args){
     if (setenv(args[1], "", 0) != 0){
       perror("Error setting variable");
     }
+  }
+}
+
+void bic_alias(char **args){
+  if(args[1] == NULL){ // if called with no arguments, print history
+    AliasList *temp = aliasHead;
+    while (temp != NULL){
+      printf("command: %s arguments: ", temp->alias);
+      int j = 0;
+      while (temp->aliasArgs[j] != NULL){
+        printf("%s ", temp->aliasArgs[j]);
+        j++;
+      }
+      printf("\n");
+      temp = temp->next;
+    }
+  }
+  else{
+    insertAlias(args);
   }
 }
