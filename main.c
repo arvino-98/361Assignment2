@@ -1,3 +1,8 @@
+/*
+Arvin Ay-ay
+main.c calls sh.c to start the program.
+Also contains signal handling code
+*/
 #include "sh.h"
 #include "builtins.h"
 #include <signal.h>

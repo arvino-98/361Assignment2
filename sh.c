@@ -1,3 +1,9 @@
+/*
+Arvin Aya-ay
+sh.c was the skeleton code that has been built upon.
+It contains the main loop for our shell as well as a some
+built-in command code
+*/
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -9,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <glob.h>
 #include "sh.h"
 #include "builtins.h"
 #include "history.h"
@@ -76,6 +83,7 @@ int sh( int argc, char **argv, char **envp )
 
     // if command not null figure out what to do with it
     if (command != NULL){
+      printf("command: %s\n", command);
       // insert command into history list
       insert(command);
 
@@ -101,6 +109,8 @@ int sh( int argc, char **argv, char **envp )
       // end checking alias
       // if an alias was found, the values of command and *args
       // have been modifies to match the alias
+
+      //checkWildcard(args);
 
       /* now check for each built in command and implement */
       // if exit, free all allocated space
@@ -155,8 +165,18 @@ int sh( int argc, char **argv, char **envp )
       // according to skeleton code
       else if (strcmp(command, "list") == 0){
         printf("Executing built-in: list\n");
-        list(args[1]);
+        if (args[1] != NULL){
+          int i = 1;
+          while (args[i] != NULL){
+            list(args[i]);
+            i++;
+          }
+        }
+        else {
+          list(args[1]);
+        }
       }
+
       // check if one of the other built-ins
       else if (isBuiltIn(command, args)){
         printf("Executing built-in: %s\n", command);
@@ -168,17 +188,21 @@ int sh( int argc, char **argv, char **envp )
       else{
         /* find it */
         // if a command starts with ./ or ../ or / check if it's an absolute path
-        // that is executable
         if ((command[0] == '.' && command[1] == '/') ||
             (command[0] == '/') ||
             (command[0] == '.' && command[1] == '.' && command[2] == '/'))
           {
-          if (access(command, X_OK) == 0){
+          // ithat is executable and not a directory
+          DIR *dirLoc = opendir(command);
+          if ((access(command, X_OK) == 0) && (dirLoc == NULL)) {
+            // if it is set it to commandpath
             commandpath = command;
           }
+          // else set commandpath to null
           else {
             commandpath = NULL;
           }
+          free(dirLoc);
         }
         // else if it is not, we check if it is a command somewhere that can we find
         // with which()
@@ -272,3 +296,17 @@ void list (char *dir)
   }
   free(dirLoc);
 } /* list() */
+
+void checkWildcard(char **args){
+  glob_t paths;
+  int csource;
+  char **p;
+
+  csource = glob("*.h", 0, NULL, &paths);
+
+  if (csource == 0){
+    for (p = paths.gl_pathv; *p != NULL; ++p){
+      puts(*p);
+    }
+  }
+}

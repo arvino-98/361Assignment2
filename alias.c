@@ -1,3 +1,9 @@
+/*
+Arvin Aya-ay
+alias.c contains code to maintain our alias list.
+The list is a linked list of AliasList structs.
+Each struct contains the alias's name and associated command and arguments
+*/
 #include "alias.h"
 
 // insert an alias into the list according to given **args
@@ -52,6 +58,7 @@ void printAllAlias(){
   }
 }
 
+// free all alias nodes
 void freeAliasList(AliasList *head){
   AliasList *tmp;
   while (head != NULL){

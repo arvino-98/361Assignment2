@@ -1,3 +1,9 @@
+/*
+Arvin Ay-ay
+builtins.c contains the built in commands that were
+not already defined in sh.c
+*/
+
 #include "builtins.h"
 #include "history.h"
 #include "alias.h"
@@ -32,12 +38,14 @@ void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_alias
 };
 
+// initialize previous directory to the current directory
 void initPrevDirectory(){
   prevDirectory = getcwd(NULL, 0);
 }
 void freePrevDirectory(){
   free(prevDirectory);
 }
+// initialize our local copy of the environment variable
 void initEnvp(char **envp){
   bic_envp = envp;
 }
@@ -123,16 +131,34 @@ void bic_history(char **args){
   }
 }
 
+// prints PID of shell
 void bic_pid(){
   printf("PID: %d\n", getpid());
 }
 
 // kills the procss of a give pid
 void bic_kill(char **args){
-  if (args[1] != NULL) {
+  // if called with no argument, return
+  if (args[1] == NULL){
+    return;
+  }
+  // else if called with a single argument that doesn't start
+  // with '-', attempt to kill it
+  else if (args[1][0] !=  '-') {
     if (kill(atoi(args[1]), SIGTERM) != 0){
       perror("Not a valid signal");
     }
+  }
+  // else if called with a two arguments and the first starts
+  // with '-', attempt to send the specified signal
+  else if (args[1][0] ==  '-' && args[2] != NULL){
+    if (kill(atoi(args[2]), args[1][1]) != 0){
+      perror("Not a valid signal");
+    }
+  }
+  // else there were too many arguments
+  else {
+    printf("Invalid argument");
   }
 }
 
@@ -180,6 +206,7 @@ void bic_setenv(char **args){
   }
 }
 
+// prints known alias with no arguments, else inserts it into alias list
 void bic_alias(char **args){
   if(args[1] == NULL){ // if called with no arguments, print history
     printAllAlias();

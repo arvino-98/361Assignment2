@@ -1,5 +1,11 @@
+/*
+Arvin Aya-ay
+history.c contains functions used for keeping track of command history.
+Command history is maintained as a linked list.
+*/
 #include "history.h"
 
+// insert a new history node
 void insert(char *cmd){
   HistList *newHist = malloc(sizeof(HistList));
   newHist->data = malloc(128);
@@ -19,6 +25,7 @@ void insert(char *cmd){
   }
 }
 
+// free all history nodes
 void freeList(HistList *head){
   HistList *tmp;
   while (head != NULL){
