@@ -1,3 +1,7 @@
+/*
+Arvin Aya-ay
+history.h
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
