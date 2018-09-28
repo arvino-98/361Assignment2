@@ -81,15 +81,17 @@ int sh( int argc, char **argv, char **envp )
 
       // check if command is an alias
       if (aliasHead != NULL){
-        printf("looking for alias\n");
         AliasList *temp = aliasHead;
+        // for each alias struct in the list
         while (temp != NULL){
+          // if alias name matches command
           if (strcmp(temp->alias, args[0]) == 0){
-            printf("found alias\n");
+            // set command first argument in aliasArgs (which is the corresponding command name)
             command = temp->aliasArgs[0];
+            // and copy the values of aliasArgs into the local args array
             int i = 0;
-            while (temp->aliasArgs[i + 2] != NULL){
-              strcpy(args[i], temp->aliasArgs[i]);
+            while (temp->aliasArgs[i] != NULL){
+              args[i] = temp->aliasArgs[i];
               i++;
             }
           }
@@ -97,8 +99,10 @@ int sh( int argc, char **argv, char **envp )
         }
       }
       // end checking alias
+      // if an alias was found, the values of command and *args
+      // have been modifies to match the alias
 
-      /* check for each built in command and implement */
+      /* now check for each built in command and implement */
       // if exit, free all allocated space
       if (strcmp(command, "exit") == 0){
         struct pathelement *tmp = pathlist;
@@ -111,10 +115,20 @@ int sh( int argc, char **argv, char **envp )
         free(pwd);
         free(commandline);
         free(prompt);
-        free(args);
         free(owd);
+
+        // freeing each char * in args since there is
+        // a possibility that values were copied in from alias
+        int i = 0;
+        while (args[i] != NULL){
+          free(args[i]);
+          i++;
+        }
+        free(args);
+
         freePrevDirectory();
         freeList(head);
+        freeAliasList(aliasHead);
         exit(0);
       }
       // where called seperately because it was defined in sh.c

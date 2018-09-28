@@ -182,17 +182,7 @@ void bic_setenv(char **args){
 
 void bic_alias(char **args){
   if(args[1] == NULL){ // if called with no arguments, print history
-    AliasList *temp = aliasHead;
-    while (temp != NULL){
-      printf("command: %s arguments: ", temp->alias);
-      int j = 0;
-      while (temp->aliasArgs[j] != NULL){
-        printf("%s ", temp->aliasArgs[j]);
-        j++;
-      }
-      printf("\n");
-      temp = temp->next;
-    }
+    printAllAlias();
   }
   else{
     insertAlias(args);

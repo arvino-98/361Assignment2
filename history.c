@@ -1,5 +1,4 @@
 #include "history.h"
-int toPrint = 0;
 
 void insert(char *cmd){
   HistList *newHist = malloc(sizeof(HistList));

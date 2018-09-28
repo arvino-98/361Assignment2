@@ -10,3 +10,4 @@ HistList *head;
 
 void insert(char *cmd);
 void freeList(HistList *head);
+void printAllHistory();

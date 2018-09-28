@@ -10,3 +10,5 @@ typedef struct AliasList{
 AliasList *aliasHead;
 
 void insertAlias(char **args);
+void printAllAlias();
+void freeAliasList(AliasList *head);
