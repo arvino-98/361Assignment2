@@ -3,7 +3,7 @@
 #include <string.h>
 
 typedef struct AliasList{
-  char *alias;
+  char *aliasName;
   char **aliasArgs;
   struct AliasList *next;
 } AliasList;

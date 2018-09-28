@@ -85,7 +85,7 @@ int sh( int argc, char **argv, char **envp )
         // for each alias struct in the list
         while (temp != NULL){
           // if alias name matches command
-          if (strcmp(temp->alias, args[0]) == 0){
+          if (strcmp(temp->aliasName, args[0]) == 0){
             // set command first argument in aliasArgs (which is the corresponding command name)
             command = temp->aliasArgs[0];
             // and copy the values of aliasArgs into the local args array
@@ -116,7 +116,6 @@ int sh( int argc, char **argv, char **envp )
         free(commandline);
         free(prompt);
         free(owd);
-
         // freeing each char * in args since there is
         // a possibility that values were copied in from alias
         int i = 0;
@@ -125,7 +124,6 @@ int sh( int argc, char **argv, char **envp )
           i++;
         }
         free(args);
-
         freePrevDirectory();
         freeList(head);
         freeAliasList(aliasHead);
@@ -257,6 +255,7 @@ void list (char *dir)
   struct dirent *dp;
   if (dir != NULL){ // if called with argument
     dirLoc = opendir(dir); // open and set it as our dir
+    printf("\n%s:\n", dir);
     if (!dirLoc){ // only if argument is a valid directory
       printf("Invalid directory\n");
       return;
