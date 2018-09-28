@@ -65,10 +65,12 @@ int sh( int argc, char **argv, char **envp )
       token = strtok(NULL," ");
       args[i] = token;
       i++;
-    } // end processing
+    }
+    // end command line processing
 
     // if command not null figure out what to do with it
     if (command != NULL){
+      // insert command into history list
       insert(command);
       /* first check for each built in command and implement */
       // if exit, free all allocated space
@@ -121,7 +123,8 @@ int sh( int argc, char **argv, char **envp )
       else if (isBuiltIn(command, args)){
         printf("Executing built-in: %s\n", command);
         getBuiltInPtr(command, args);
-      } // end checking built-ins
+      }
+      // end checking built-ins
 
       /*  else  program to exec */
       else{
@@ -164,8 +167,10 @@ int sh( int argc, char **argv, char **envp )
         else {
           fprintf(stderr, "%s: Command not found.\n", args[0]);
         }
-      } // end finding program to exec
+      }
+      // end finding program to exec
     }
+
     // if command was null just move back to beginning of loop
     else {
       continue;
@@ -174,6 +179,7 @@ int sh( int argc, char **argv, char **envp )
   return 0;
 } /* sh() */
 
+// which returns path to a command if it exists, else null
 char *which(char *command, struct pathelement *pathlist )
 {
    /* loop through pathlist until finding command and return it.  Return
@@ -191,7 +197,8 @@ char *which(char *command, struct pathelement *pathlist )
    return NULL;
 } /* which() */
 
-void where(char *command, struct pathelement *pathlist)
+// where prints all paths to a command that exist
+char* where(char *command, struct pathelement *pathlist)
 {
   /* similarly loop through finding all locations of command */
   char cmd[64];
@@ -202,7 +209,6 @@ void where(char *command, struct pathelement *pathlist)
     }
     pathlist = pathlist->next;
   }
-  return;
 } /* where() */
 
 void list (char *dir)
