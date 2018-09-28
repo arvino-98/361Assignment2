@@ -26,8 +26,8 @@ int sh( int argc, char **argv, char **envp )
   struct pathelement *pathlist;
 
   uid = getuid();
-  password_entry = getpwuid(uid);               /* get passwd info */
-  homedir = password_entry->pw_dir;		/* Home directory to start out with*/
+  password_entry = getpwuid(uid); /* get passwd info */
+  homedir = password_entry->pw_dir; /* Home directory to start out with*/
 
   if ( (pwd = getcwd(NULL, PATH_MAX+1)) == NULL )
   {
@@ -41,7 +41,9 @@ int sh( int argc, char **argv, char **envp )
   /* Put PATH into a linked list */
   pathlist = get_path();
 
+  // initialize our variable in builtins.c keeping track of the previous directory
   initPrevDirectory();
+  // initialize our variable in builtins.c keeping track of the environment
   initEnvp(envp);
 
   while ( go )
@@ -50,6 +52,8 @@ int sh( int argc, char **argv, char **envp )
     char *cwd = getcwd(NULL, 0);
     printf("%s[%s]%s",prompt,cwd,">");
     free(cwd);
+    // end printing prompt
+
     /* get command line and process */
     fgets(commandline, BUFFERSIZE, stdin);
     commandline[strlen(commandline) - 1] = '\0';
@@ -61,12 +65,14 @@ int sh( int argc, char **argv, char **envp )
       token = strtok(NULL," ");
       args[i] = token;
       i++;
-    }
+    } // end processing
+
     // if command not null figure out what to do with it
     if (command != NULL){
       insert(command);
-    /* check for each built in command and implement */
-      if (strcmp(command, "exit") == 0){ // if exit, free all allocated space
+      /* first check for each built in command and implement */
+      // if exit, free all allocated space
+      if (strcmp(command, "exit") == 0){
         struct pathelement *tmp = pathlist;
         struct pathelement *prev = NULL;
         while (tmp != NULL){
@@ -83,10 +89,16 @@ int sh( int argc, char **argv, char **envp )
         freeList(head);
         exit(0);
       }
-      else if (strcmp(command, "where") == 0){ // where called seperately because it was defined in sh.c
+      // where called seperately because it was defined in sh.c
+      // according to skeleton code
+      else if (strcmp(command, "where") == 0){
+        printf("Executing built-in: where\n");
         where(args[1], pathlist);
       }
-      else if (strcmp(command, "prompt") == 0){ // prompt called seperately because it must modify the prompt variable
+      // prompt called seperately because it must modify the prompt local variable
+      // in this sh() function
+      else if (strcmp(command, "prompt") == 0){
+        printf("Executing built-in: prompt\n");
         if (args[1] == NULL){
           char newPrompt[32];
           printf("Enter new prompt prefix: ");
@@ -99,32 +111,47 @@ int sh( int argc, char **argv, char **envp )
           strcpy(prompt, newPrompt);
         }
       }
-      else if (isBuiltIn(command, args)){ // check if one of the other built-ins
+      // list called seperately because it was defined in sh.c
+      // according to skeleton code
+      else if (strcmp(command, "list") == 0){
+        printf("Executing built-in: list\n");
+        list(args[1]);
+      }
+      // check if one of the other built-ins
+      else if (isBuiltIn(command, args)){
         printf("Executing built-in: %s\n", command);
         getBuiltInPtr(command, args);
-      }
-       /*  else  program to exec */
+      } // end checking built-ins
+
+      /*  else  program to exec */
       else{
         /* find it */
-        // if a command starts with ./ or / check if its an absolute pathlist
+        // if a command starts with ./ or ../ or / check if it's an absolute path
         // that is executable
-        if ((command[0] == '.' && command[1] == '/') || (command[0] == '/')){
+        if ((command[0] == '.' && command[1] == '/') ||
+            (command[0] == '/') ||
+            (command[0] == '.' && command[1] == '.' && command[2] == '/'))
+          {
           if (access(command, X_OK) == 0){
             commandpath = command;
           }
+          else {
+            commandpath = NULL;
+          }
         }
-        // else if it is not, we check if it is a command somewhere that we find
+        // else if it is not, we check if it is a command somewhere that can we find
         // with which()
         else if (command[0] != '.' && command[0] != '/'){
           commandpath = which(command, pathlist);
         }
         /* do fork(), execve() and waitpid() */
         if (commandpath != NULL){
-          printf("Executing %s\n", command);
+          printf("Executing: %s\n", command);
           if ((pid = fork()) < 0) {
             perror("Fork error");
   		    }
-          else if (pid == 0) {/* child */
+          /* child */
+          else if (pid == 0) {
             execv(commandpath, args);
             perror("Couldn't execute");
             exit(127);
@@ -137,8 +164,9 @@ int sh( int argc, char **argv, char **envp )
         else {
           fprintf(stderr, "%s: Command not found.\n", args[0]);
         }
-      }
+      } // end finding program to exec
     }
+    // if command was null just move back to beginning of loop
     else {
       continue;
     }
@@ -176,3 +204,26 @@ void where(char *command, struct pathelement *pathlist)
   }
   return;
 } /* where() */
+
+void list (char *dir)
+{
+  DIR *dirLoc;
+  struct dirent *dp;
+  if (dir != NULL){ // if called with argument
+    dirLoc = opendir(dir); // open and set it as our dir
+    if (!dirLoc){ // only if argument is a valid directory
+      printf("Invalid directory\n");
+      return;
+    }
+  }
+  else{// else set dir to current working directory
+    char *cwd = getcwd(NULL, 0);
+    dirLoc = opendir(cwd);
+    free(cwd);
+  }
+  // then print dir
+  while ((dp=readdir(dirLoc)) != NULL){
+    printf("%s\n", dp->d_name);
+  }
+  free(dirLoc);
+} /* list() */

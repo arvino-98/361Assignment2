@@ -15,7 +15,6 @@ void getBuiltInPtr(char *command,char **args);
 
 void bic_pwd();
 void bic_cd(char **args);
-void bic_list(char **args);
 void bic_history(char **args);
 void bic_pid();
 void bic_kill(char **args);

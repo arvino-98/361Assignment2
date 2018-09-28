@@ -6,20 +6,22 @@ int histToPrint = 10;
 char* prevDirectory;
 char **bic_envp;
 
+// array of char* that keep track of names of our buil-in commands
+// mapped 1 to 1 to function pointers in below array BUILT_IN_COMMANDS_PTR
 const char* BUILT_IN_COMMANDS[] = {
   "pwd",
   "cd",
-  "list",
   "history",
   "pid",
   "kill",
   "printenv",
   "setenv"
 };
+// array of char* that keep track of function pointers of our buil-in commands
+// mapped 1 to 1 to function pointers in above array BUILT_IN_COMMANDS
 void (*BUILT_IN_COMMANDS_PTR[])(char** args) = {
   bic_pwd,
   bic_cd,
-  bic_list,
   bic_history,
   bic_pid,
   bic_kill,
@@ -92,31 +94,6 @@ void bic_cd(char **args){
   }
   free(prevDirectoryLoc);
 }
-
-// lists all files in current directory
-void bic_list (char **args)
-{
-  DIR *dir;
-  struct dirent *dp;
-  if (args[1] != NULL){ // if called with argument
-    dir = opendir(args[1]); // open and set it as our dir
-    if (!dir){ // only if argument is a valid directory
-      printf("Invalid directory\n");
-      return;
-    }
-  }
-  else{// else set dir to current working directory
-    char *cwd = getcwd(NULL, 0);
-    dir = opendir(cwd);
-    free(cwd);
-  }
-
-  // then print dir
-  while ((dp=readdir(dir)) != NULL){
-    printf("%s\n", dp->d_name);
-  }
-  free(dir);
-} /* list() */
 
 // prints history or changes amount to print based on given argument
 void bic_history(char **args){
