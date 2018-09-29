@@ -83,7 +83,6 @@ int sh( int argc, char **argv, char **envp )
 
     // if command not null figure out what to do with it
     if (command != NULL){
-      printf("command: %s\n", command);
       // insert command into history list
       insert(command);
 
@@ -123,16 +122,8 @@ int sh( int argc, char **argv, char **envp )
           free(prev);
         }
         free(pwd);
-        free(commandline);
         free(prompt);
         free(owd);
-        // freeing each char * in args since there is
-        // a possibility that values were copied in from alias
-        int i = 0;
-        while (args[i] != NULL){
-          free(args[i]);
-          i++;
-        }
         free(args);
         freePrevDirectory();
         freeList(head);
@@ -225,6 +216,7 @@ int sh( int argc, char **argv, char **envp )
   		    if ((pid = waitpid(pid, &status, 0)) < 0){
             perror("Wait error");
           }
+          free(commandpath);
         }
         else {
           fprintf(stderr, "%s: Command not found.\n", args[0]);
